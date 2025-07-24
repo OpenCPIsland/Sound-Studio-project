@@ -6,69 +6,26 @@ namespace SoundStudio.Model
 	public class PlayerAccountVO
 	{
 		private FriendsTrackCollection friendsTrackCollection;
-
 		private HashSet<int> genresCollected;
 
-		public string DisplayName
-		{
-			get;
-			set;
-		}
+		public string DisplayName { get; set; }
+		public string Username { get; set; }
+		public string Password { get; set; }
+		public string Swid { get; set; }
+		public long ID { get; set; }
 
-		public string Username
-		{
-			get;
-			set;
-		}
-
-		public string Password
-		{
-			get;
-			set;
-		}
-
-		public string Swid
-		{
-			get;
-			set;
-		}
-
-		public long ID
-		{
-			get;
-			set;
-		}
+		private MembershipStatus _accountStatus; // backing field
 
 		public MembershipStatus AccountStatus
 		{
-			get;
-			set;
+			get => MembershipStatus.MEMBER; // Always return MEMBER (force membership)
+			set => _accountStatus = value;  // store set value normally
 		}
 
-		public string AuthToken
-		{
-			get;
-			set;
-		}
-
-		public int PenguinColor
-		{
-			get;
-			set;
-		}
-
-		public MySongsStatus MySongsState
-		{
-			get;
-			set;
-		}
-
-		public FriendCollectionStatus FriendCollectionStatus
-		{
-			get;
-			set;
-		}
-
+		public string AuthToken { get; set; }
+		public int PenguinColor { get; set; }
+		public MySongsStatus MySongsState { get; set; }
+		public FriendCollectionStatus FriendCollectionStatus { get; set; }
 		public FriendsTrackCollection FriendsTrackCollection => friendsTrackCollection;
 
 		public PlayerAccountVO()
@@ -76,6 +33,8 @@ namespace SoundStudio.Model
 			FriendCollectionStatus = FriendCollectionStatus.UNINITIALIZED;
 			friendsTrackCollection = new FriendsTrackCollection();
 			genresCollected = new HashSet<int>();
+
+			// This line still here but irrelevant now:
 			AccountStatus = MembershipStatus.GUEST;
 			MySongsState = MySongsStatus.LOADING;
 		}
@@ -89,24 +48,24 @@ namespace SoundStudio.Model
 		{
 			switch (storeID)
 			{
-			case "Disney.ClubPenguinSoundStudio.GenrePop":
-				AddGenre(0);
-				break;
-			case "Disney.ClubPenguinSoundStudio.GenreRock":
-				AddGenre(1);
-				break;
-			case "Disney.ClubPenguinSoundStudio.GenreDance":
-				AddGenre(2);
-				break;
-			case "Disney.ClubPenguinSoundStudio.GenreCadence":
-				AddGenre(5);
-				break;
-			case "Disney.ClubPenguinSoundStudio.GenreDubstep":
-				AddGenre(3);
-				break;
-			case "Disney.ClubPenguinSoundStudio.GenreSpooky":
-				AddGenre(4);
-				break;
+				case "Disney.ClubPenguinSoundStudio.GenrePop":
+					AddGenre(0);
+					break;
+				case "Disney.ClubPenguinSoundStudio.GenreRock":
+					AddGenre(1);
+					break;
+				case "Disney.ClubPenguinSoundStudio.GenreDance":
+					AddGenre(2);
+					break;
+				case "Disney.ClubPenguinSoundStudio.GenreCadence":
+					AddGenre(5);
+					break;
+				case "Disney.ClubPenguinSoundStudio.GenreDubstep":
+					AddGenre(3);
+					break;
+				case "Disney.ClubPenguinSoundStudio.GenreSpooky":
+					AddGenre(4);
+					break;
 			}
 		}
 

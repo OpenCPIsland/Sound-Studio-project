@@ -3,6 +3,7 @@ using strange.extensions.context.api;
 using strange.extensions.dispatcher.eventdispatcher.api;
 using strange.extensions.mediation.impl;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class QuitConfirmView : View
 {
@@ -21,7 +22,7 @@ public class QuitConfirmView : View
 
 	private void Update()
 	{
-		if (UnityEngine.Input.GetKeyDown(KeyCode.Escape))
+		if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
 		{
 			ContextDispatcher.Dispatch("back_click_event");
 		}

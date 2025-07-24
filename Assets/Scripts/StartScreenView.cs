@@ -6,6 +6,7 @@ using strange.extensions.dispatcher.eventdispatcher.api;
 using strange.extensions.mediation.impl;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class StartScreenView : View
 {
@@ -72,7 +73,7 @@ public class StartScreenView : View
 
 	private void Update()
 	{
-		if (UnityEngine.Input.GetKeyDown(KeyCode.Escape))
+		if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
 		{
 			dispatcher.Dispatch("BACK_CLICK_EVENT");
 		}
