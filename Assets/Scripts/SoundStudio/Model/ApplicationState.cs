@@ -49,6 +49,8 @@ namespace SoundStudio.Model
 			set;
 		}
 
+		public bool UseOnlineServices => false;
+
 		public DateTime LastAppUpdateCheck
 		{
 			get;

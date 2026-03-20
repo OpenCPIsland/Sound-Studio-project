@@ -18,6 +18,11 @@ public class PerformCachedActionsCommand : EventCommand
 
 	public override void Execute()
 	{
+		if (!application.UseOnlineServices)
+		{
+			base.dispatcher.Dispatch(SoundStudioEvent.PERFORM_CACHED_ACTIONS_COMPLETE);
+			return;
+		}
 		if (application.songData != null)
 		{
 			FindUnSyncedActions(application.songData.SongList);

@@ -39,7 +39,7 @@ namespace SoundStudio.Command
 					}
 				}
 			}
-			if (application.currentPlayer.AccountStatus != 0)
+			if (application.UseOnlineServices && application.currentPlayer.AccountStatus != 0)
 			{
 				MWSClient.GetIAPPurchasesForPlayer();
 			}

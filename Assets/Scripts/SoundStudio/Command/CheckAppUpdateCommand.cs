@@ -24,6 +24,10 @@ namespace SoundStudio.Command
 
 		public override void Execute()
 		{
+			if (!application.UseOnlineServices)
+			{
+				return;
+			}
 			GameObject gameObject = base.evt.data as GameObject;
 			if (gameObject == null)
 			{

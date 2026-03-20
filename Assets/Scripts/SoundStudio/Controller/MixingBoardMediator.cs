@@ -222,7 +222,7 @@ namespace SoundStudio.Controller
 				base.dispatcher.Dispatch(SFXEvent.SFX_CLICK_BACK);
 				base.dispatcher.Dispatch(SoundStudioEvent.SHOW_RECORD_OOPS_POPUP, view.CanvasObject);
 			}
-			else if (application.songData.SongList.Count >= 24)
+			else if (Constants.MAX_SONGS_MEMBER != int.MaxValue && application.songData.SongList.Count >= Constants.MAX_SONGS_MEMBER)
 			{
 				base.dispatcher.Dispatch(SFXEvent.SFX_CLICK_BACK);
 				base.dispatcher.Dispatch(SoundStudioEvent.SHOW_MAX_SONGS_POPUP, view.CanvasObject);

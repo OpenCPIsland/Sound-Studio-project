@@ -12,6 +12,8 @@ public class EditSongMediator : EventMediator
 
 	private const string BAD_WORDS_TOKEN = "soundstudio.common.badwordlist";
 
+	private bool isSaving;
+
 	[Inject]
 	public EditSongView view
 	{
@@ -98,6 +100,10 @@ public class EditSongMediator : EventMediator
 
 	public void view_Save_Handler(IEvent evt)
 	{
+		if (isSaving)
+		{
+			return;
+		}
 		SongVO songVO = (SongVO)evt.data;
 		songVO.songName = view.inputText.text;
 		string[] array = Localizer.Instance.GetTokenTranslation("soundstudio.common.badwordlist").Replace(" ", string.Empty).Split(',');
@@ -110,18 +116,25 @@ public class EditSongMediator : EventMediator
 				return;
 			}
 		}
+		isSaving = true;
+		view.buttonSave.interactable = false;
 		base.dispatcher.Dispatch(SongStopEvent.SONG_STOP);
+		if (!string.IsNullOrEmpty(songVO.FileName))
+		{
+			SaveExistingSongName(songVO);
+			return;
+		}
 		base.dispatcher.AddListener(SongSaveEvent.SONG_SAVE_SUCCESS, OnSongSaveSuccess);
 		base.dispatcher.Dispatch(SoundStudioEvent.PAUSE_RETRY_SERVICE);
 		base.dispatcher.Dispatch(SongSaveEvent.SONG_SAVE, songVO);
-		if (application.CurrentLevel.Equals(SceneNames.MixingBoard.ToString()))
-		{
-			base.dispatcher.Dispatch(LoadLevelEvent.LOAD_LEVEL, SceneNames.Songs);
-		}
-		else
-		{
-			songVO.dispatchNameEvent();
-		}
+		base.dispatcher.Dispatch(LoadLevelEvent.LOAD_LEVEL, SceneNames.Songs);
+		UnityEngine.Object.Destroy(base.gameObject);
+	}
+
+	private void SaveExistingSongName(SongVO songVO)
+	{
+		base.dispatcher.Dispatch(SongSaveEvent.SONG_SAVE, songVO);
+		songVO.dispatchNameEvent();
 		UnityEngine.Object.Destroy(base.gameObject);
 	}
 

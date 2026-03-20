@@ -14,7 +14,8 @@ public static class Constants
 
 	public const int MAX_SONG_SECONDS = 180;
 
-	public const int MAX_SONGS_MEMBER = 24;
+	// The legacy online service capped saves at 24; the offline build keeps local saves unlimited.
+	public const int MAX_SONGS_MEMBER = int.MaxValue;
 
 	public const string SONG_PREFIX = "song_";
 

@@ -14,18 +14,28 @@ namespace SoundStudio.Command.MWS
 
 		public override void Execute()
 		{
+			songSyncVo = (base.evt.data as SongSyncVO);
+			if (!base.ApplicationState.UseOnlineServices)
+			{
+				if (songSyncVo != null && songSyncVo.SongVo != null)
+				{
+					songSyncVo.SongVo.dispatchSyncEvent();
+				}
+				base.dispatcher.Dispatch(SoundStudioEvent.SONG_SYNC_COMPLETED, songSyncVo);
+				Release();
+				return;
+			}
 			if (base.ApplicationState.currentPlayer.AccountStatus == MembershipStatus.GUEST)
 			{
 				Release();
 				return;
 			}
-			if (base.ApplicationState.songData.SynchronizedCount >= 24)
+			if (Constants.MAX_SONGS_MEMBER != int.MaxValue && base.ApplicationState.songData.SynchronizedCount >= Constants.MAX_SONGS_MEMBER)
 			{
 				base.dispatcher.Dispatch(ErrorEvent.ERROR, new ErrorPayload("501"));
 				Fail();
 				return;
 			}
-			songSyncVo = (base.evt.data as SongSyncVO);
 			if (songSyncVo == null)
 			{
 				throw new ArgumentNullException("The wrong type was dispatched to the song sync command: " + base.evt);

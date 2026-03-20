@@ -44,6 +44,11 @@ namespace SoundStudio.Command.MWS
 					serverTracks = getSoundStudioTracksDataResponse.Tracks;
 					base.dispatcher.Dispatch(SoundStudioEvent.GET_MY_TRACKS_LISTING_COMMAND_COMPLETE, serverTracks);
 				}
+				else
+				{
+					application.currentPlayer.MySongsState = MySongsStatus.ERROR;
+					base.dispatcher.Dispatch(SoundStudioEvent.CONSOLIDATE_TRACKS_FAILED);
+				}
 			}
 			finally
 			{

@@ -35,15 +35,17 @@ namespace SoundStudio.Command.MWS
 			{
 				throw new ArgumentNullException("Song VO cannot be null");
 			}
-			if (song.HasServerID)
+			if (!application.UseOnlineServices || !song.HasServerID)
+			{
+				DeleteLocally();
+				Release();
+				base.dispatcher.Dispatch(SoundStudioEvent.SONG_DELETE_COMPLETED);
+			}
+			else if (song.HasServerID)
 			{
 				base.dispatcher.AddListener(MWSEvent.DELETE_MY_TRACK_SUCCESS, OnMWSDeleteTrackSuccess);
 				base.dispatcher.AddListener(MWSEvent.DELETE_MY_TRACK_FAILED, OnMWSDeleteTrackFailed);
 				MWSClientService.DeleteMySoundStudioTrack(song.serverID);
-			}
-			else
-			{
-				DeleteLocally();
 			}
 		}
 

@@ -160,6 +160,7 @@ public class SoundStudioContext : MVCSContext
 		injectionBinder.Bind<ApplicationState>().To<ApplicationState>().ToSingleton();
 		injectionBinder.Bind<SongRecorder>().To<SongRecorder>().ToSingleton();
 		injectionBinder.Bind<GenreAudioManager>().To<GenreAudioManager>().ToSingleton();
+		injectionBinder.Bind<SongAudioExportService>().To<SongAudioExportService>().ToSingleton();
 		injectionBinder.Bind<SongVO>().To<SongVO>();
 		InjectMopubManager();
 		InjectLocalNotifications();

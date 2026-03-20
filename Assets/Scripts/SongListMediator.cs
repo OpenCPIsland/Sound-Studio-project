@@ -108,7 +108,12 @@ public class SongListMediator : EventMediator
 
 	private void UpdateSongCountInView()
 	{
-		view.SyncCountText.text = Localizer.Instance.GetTokenTranslation("soundstudio.startscreen.songs") + ": " + application.songData.SongList.Count.ToString() + " / " + 24;
+		string text = Localizer.Instance.GetTokenTranslation("soundstudio.startscreen.songs") + ": " + application.songData.SongList.Count.ToString();
+		if (Constants.MAX_SONGS_MEMBER != int.MaxValue)
+		{
+			text = text + " / " + Constants.MAX_SONGS_MEMBER;
+		}
+		view.SyncCountText.text = text;
 	}
 
 	private void onNewClicked()

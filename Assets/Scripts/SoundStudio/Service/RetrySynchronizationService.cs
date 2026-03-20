@@ -1,4 +1,5 @@
 using SoundStudio.Event;
+using SoundStudio.Model;
 using strange.extensions.context.api;
 using strange.extensions.dispatcher.eventdispatcher.api;
 using System;
@@ -25,6 +26,13 @@ namespace SoundStudio.Service
 
 		[Inject(ContextKeys.CONTEXT_VIEW)]
 		public GameObject contextView
+		{
+			get;
+			set;
+		}
+
+		[Inject]
+		public ApplicationState applicationState
 		{
 			get;
 			set;
@@ -69,6 +77,10 @@ namespace SoundStudio.Service
 
 		private void OnTimerTick()
 		{
+			if (applicationState != null && !applicationState.UseOnlineServices)
+			{
+				return;
+			}
 			if (!paused)
 			{
 				dispatcher.Dispatch(SoundStudioEvent.PERFORM_CACHED_ACTIONS);

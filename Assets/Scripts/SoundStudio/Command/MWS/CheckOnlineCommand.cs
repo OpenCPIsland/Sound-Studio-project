@@ -7,6 +7,11 @@ namespace SoundStudio.Command.MWS
 	{
 		public override void Execute()
 		{
+			if (!base.ApplicationState.UseOnlineServices)
+			{
+				Release();
+				return;
+			}
 			switch (Application.internetReachability)
 			{
 			case NetworkReachability.NotReachable:
