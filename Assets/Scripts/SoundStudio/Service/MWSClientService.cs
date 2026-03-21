@@ -6,6 +6,7 @@ using SoundStudio.Model;
 using strange.extensions.context.api;
 using strange.extensions.dispatcher.eventdispatcher.api;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SoundStudio.Service
 {
@@ -263,6 +264,10 @@ namespace SoundStudio.Service
 
 		public void ClaimProductsForMember(IList<string> productIds)
 		{
+			if (!application.UseOnlineServices || Application.internetReachability == NetworkReachability.NotReachable)
+			{
+				return;
+			}
 			StoreType store = StoreType.GOOGLE_PLAY;
 			MWSClient.ClaimProductsForMember(Utils.GetGuid(), store, productIds, ClaimProductsForMemberCallback);
 		}

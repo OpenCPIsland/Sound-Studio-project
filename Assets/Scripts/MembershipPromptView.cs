@@ -1,4 +1,5 @@
 using Disney.ClubPenguin.CPModuleUtils;
+using SoundStudio.Model;
 using strange.extensions.mediation.impl;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,6 +19,13 @@ public class MembershipPromptView : View
 	public GameObject CadenceText;
 
 	public Button closeButton;
+
+	[Inject]
+	public ApplicationState application
+	{
+		get;
+		set;
+	}
 
 	protected override void Awake()
 	{
@@ -63,6 +71,10 @@ public class MembershipPromptView : View
 
 	public void OnPlayButtonClick()
 	{
+		if (application != null)
+		{
+			application.MarkMembershipCollectGenrePromptSeen();
+		}
 		UnityEngine.Object.Destroy(base.gameObject);
 	}
 }

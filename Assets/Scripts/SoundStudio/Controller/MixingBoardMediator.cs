@@ -103,7 +103,10 @@ namespace SoundStudio.Controller
 				MWSClient.ClaimProductsForMember(list);
 				application.currentPlayer.AddGenre(application.CurrentGenre.id);
 				SetRecordButtonState();
-				base.dispatcher.Dispatch(SoundStudioEvent.SHOW_MEMBERSHIP_PROMPT, view.CanvasObject);
+				if (!application.HasSeenMembershipCollectGenrePrompt)
+				{
+					base.dispatcher.Dispatch(SoundStudioEvent.SHOW_MEMBERSHIP_PROMPT, view.CanvasObject);
+				}
 			}
 		}
 

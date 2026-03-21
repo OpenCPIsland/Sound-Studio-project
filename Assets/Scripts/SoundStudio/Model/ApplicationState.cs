@@ -5,6 +5,8 @@ namespace SoundStudio.Model
 {
 	public class ApplicationState
 	{
+		private const string MembershipPromptSeenKeyPrefix = "HasSeenMembershipCollectGenrePrompt";
+
 		private SongVO currentSong;
 
 		private GenreVO currentGenre;
@@ -99,6 +101,8 @@ namespace SoundStudio.Model
 			}
 		}
 
+		public bool HasSeenMembershipCollectGenrePrompt => PlayerPrefs.GetInt(GetMembershipCollectGenrePromptKey(), 0) == 1;
+
 		public string CurrentPlayerDataDirectory => $"{Application.persistentDataPath}/{currentPlayer.Username}/";
 
 		public ApplicationState()
@@ -111,6 +115,28 @@ namespace SoundStudio.Model
 		public override string ToString()
 		{
 			return $"[ApplicationState: CurrentGenre={CurrentGenre}]";
+		}
+
+		public void MarkMembershipCollectGenrePromptSeen()
+		{
+			PlayerPrefs.SetInt(GetMembershipCollectGenrePromptKey(), 1);
+			PlayerPrefs.Save();
+		}
+
+		private string GetMembershipCollectGenrePromptKey()
+		{
+			if (currentPlayer != null)
+			{
+				if (currentPlayer.ID != 0L)
+				{
+					return $"{MembershipPromptSeenKeyPrefix}.{currentPlayer.ID}";
+				}
+				if (!string.IsNullOrEmpty(currentPlayer.Username))
+				{
+					return $"{MembershipPromptSeenKeyPrefix}.{currentPlayer.Username}";
+				}
+			}
+			return MembershipPromptSeenKeyPrefix;
 		}
 	}
 }
