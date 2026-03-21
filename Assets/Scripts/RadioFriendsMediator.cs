@@ -44,6 +44,21 @@ public class RadioFriendsMediator : RadioCategoryMediator
 
 	protected override void OnInit()
 	{
+		CleanupOrphanedRadioSongs();
+		if (Application.internetReachability == NetworkReachability.NotReachable)
+		{
+			if (!isInit)
+			{
+				LoadRadioBlock(1);
+			}
+			isInit = true;
+			if (currentRadioSong != null)
+			{
+				InitialTransition();
+				CheckRemainingTracks();
+			}
+			return;
+		}
 		if (base.application.currentPlayer.AccountStatus == MembershipStatus.GUEST)
 		{
 			ShowGuestFriendsPanel();
@@ -98,6 +113,14 @@ public class RadioFriendsMediator : RadioCategoryMediator
 		{
 			ShowLoadingPanel();
 		}
+		if (Application.internetReachability == NetworkReachability.NotReachable)
+		{
+			base.dispatcher.AddListener(SoundStudioEvent.LOAD_RADIO_BLOCK_COMPLETE, OnLoadRadioBlockComplete);
+			base.dispatcher.AddListener(SoundStudioEvent.LOAD_RADIO_BLOCK_FAIL, base.OnLoadRadioBlockFail);
+			base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK, new LoadRadioBlockCommandPayload(_radioCategory, numSongs, songCollection.LastSongID));
+			isLoadingTracks = true;
+			return;
+		}
 		if (friendsIndex >= friendsList.Count)
 		{
 			isLoadingTracks = false;
@@ -115,7 +138,7 @@ public class RadioFriendsMediator : RadioCategoryMediator
 			friendsIndex += num;
 			base.dispatcher.AddListener(SoundStudioEvent.LOAD_RADIO_BLOCK_COMPLETE, OnLoadRadioBlockComplete);
 			base.dispatcher.AddListener(SoundStudioEvent.LOAD_RADIO_BLOCK_FAIL, base.OnLoadRadioBlockFail);
-			base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK, new LoadRadioBlockCommandPayload(_radioCategory, friendsSWIDS));
+			base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK, new LoadRadioBlockCommandPayload(_radioCategory, friendsSWIDS, songCollection.LastSongID));
 			isLoadingTracks = true;
 		}
 	}
@@ -130,6 +153,7 @@ public class RadioFriendsMediator : RadioCategoryMediator
 		base.dispatcher.RemoveListener(SoundStudioEvent.LOAD_RADIO_BLOCK_COMPLETE, OnLoadRadioBlockComplete);
 		base.dispatcher.RemoveListener(SoundStudioEvent.LOAD_RADIO_BLOCK_FAIL, base.OnLoadRadioBlockFail);
 		isLoadingTracks = false;
+		bool flag = Application.internetReachability == NetworkReachability.NotReachable;
 		if (loadRadioBlockCompletePayload.RadioBlock.Count > 0)
 		{
 			songCollection.AddSongs(loadRadioBlockCompletePayload.RadioBlock);
@@ -142,11 +166,11 @@ public class RadioFriendsMediator : RadioCategoryMediator
 			view.HidePopup();
 			view.RemoveLoadingPanel();
 		}
-		else if (friendsIndex < friendsList.Count)
+		else if (!flag && friendsList != null && friendsIndex < friendsList.Count)
 		{
 			CheckRemainingTracks();
 		}
-		else if (songCollection.TotalSongs == 0)
+		else if (!flag && songCollection.TotalSongs == 0)
 		{
 			view.ShowPopup("Prefabs/FriendsNotSharingPanel");
 		}

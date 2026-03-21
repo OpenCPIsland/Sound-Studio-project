@@ -26,6 +26,13 @@ namespace SoundStudio.Command
 			this.friendSwids = friendSwids;
 		}
 
+		public LoadRadioBlockCommandPayload(RadioCategory radioCategory, List<string> friendSwids, int beforeTrackID)
+		{
+			this.radioCategory = radioCategory;
+			this.friendSwids = friendSwids;
+			this.beforeTrackID = beforeTrackID;
+		}
+
 		public LoadRadioBlockCommandPayload(RadioCategory radioCategory, int blockSize, int beforeTrackID)
 		{
 			this.radioCategory = radioCategory;

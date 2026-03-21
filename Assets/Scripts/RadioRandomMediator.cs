@@ -31,7 +31,7 @@ public class RadioRandomMediator : RadioCategoryMediator
 		}
 		base.dispatcher.AddListener(SoundStudioEvent.LOAD_RADIO_BLOCK_COMPLETE, OnLoadRadioBlockComplete);
 		base.dispatcher.AddListener(SoundStudioEvent.LOAD_RADIO_BLOCK_FAIL, base.OnLoadRadioBlockFail);
-		base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK, new LoadRadioBlockCommandPayload(_radioCategory, numSongs));
+		base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK, new LoadRadioBlockCommandPayload(_radioCategory, numSongs, songCollection.LastSongID));
 		isLoadingTracks = true;
 	}
 }

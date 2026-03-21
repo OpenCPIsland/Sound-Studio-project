@@ -41,6 +41,7 @@ public class RadioCategoryMediator : EventMediator
 
 	public override void OnRemove()
 	{
+		CancelInvoke();
 		view.dispatcher.RemoveListener("NEXT_CLICK_EVENT", OnNextClick);
 		view.dispatcher.RemoveListener("PREVIOUS_CLICK_EVENT", OnPreviousClick);
 		view.dispatcher.RemoveListener("INIT_EVENT", OnInit);
@@ -54,6 +55,7 @@ public class RadioCategoryMediator : EventMediator
 
 	protected virtual void OnInit()
 	{
+		CleanupOrphanedRadioSongs();
 		CheckRemainingTracks();
 		if (currentRadioSong != null)
 		{
@@ -161,13 +163,16 @@ public class RadioCategoryMediator : EventMediator
 	{
 		if (view != null && radioSong != null)
 		{
+			CleanupOrphanedRadioSongs();
 			nextRadioSong = CreateRadioSong();
+			nextRadioSong.transform.SetAsLastSibling();
 			nextRadioSong.loadData(radioSong);
 		}
 	}
 
 	protected void InitialTransition()
 	{
+		CancelInvoke("OnInitialSongTransitionComplete");
 		currentRadioSong.transform.position = Vector3.zero;
 		currentRadioSong.AnimateEnterRight();
 		view.isInTransition = true;
@@ -176,6 +181,7 @@ public class RadioCategoryMediator : EventMediator
 
 	protected void TransitionSongs(RadioSongTransition transition)
 	{
+		CancelInvoke("OnSongTransitionComplete");
 		switch (transition)
 		{
 		case RadioSongTransition.NEXT:
@@ -201,6 +207,7 @@ public class RadioCategoryMediator : EventMediator
 	protected void OnInitialSongTransitionComplete()
 	{
 		view.isInTransition = false;
+		CleanupOrphanedRadioSongs();
 		if (base.gameObject.activeSelf)
 		{
 			currentRadioSong.playButton_Click_Handler();
@@ -212,8 +219,10 @@ public class RadioCategoryMediator : EventMediator
 		view.isInTransition = false;
 		RemoveCurrentSong();
 		currentRadioSong = nextRadioSong;
+		nextRadioSong = null;
 		base.dispatcher.AddListener("RADIO_SONG_COMPLETE_EVENT", OnRadioSongComplete);
 		currentRadioSong.radioSong.songVO.SongPlayEvent += OnCurrentSongPlay;
+		CleanupOrphanedRadioSongs();
 		ConfigureNagivation();
 		if (base.gameObject.activeSelf)
 		{
@@ -234,6 +243,7 @@ public class RadioCategoryMediator : EventMediator
 			base.dispatcher.RemoveListener("RADIO_SONG_COMPLETE_EVENT", OnRadioSongComplete);
 			base.dispatcher.Dispatch(SongStopEvent.SONG_STOP);
 			UnityEngine.Object.Destroy(currentRadioSong.gameObject);
+			currentRadioSong = null;
 		}
 	}
 
@@ -267,6 +277,22 @@ public class RadioCategoryMediator : EventMediator
 		if (songCollection.RemainingSongs == songCollection.TotalSongs - 1)
 		{
 			view.previousButton.SetActive(value: false);
+		}
+	}
+
+	protected void CleanupOrphanedRadioSongs()
+	{
+		if (view == null || view.songContainerObject == null)
+		{
+			return;
+		}
+		RadioSongView[] componentsInChildren = view.songContainerObject.GetComponentsInChildren<RadioSongView>();
+		foreach (RadioSongView radioSongView in componentsInChildren)
+		{
+			if (!(radioSongView == currentRadioSong) && !(radioSongView == nextRadioSong))
+			{
+				UnityEngine.Object.Destroy(radioSongView.gameObject);
+			}
 		}
 	}
 }

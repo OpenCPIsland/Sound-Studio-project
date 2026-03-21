@@ -73,8 +73,17 @@ public class RadioSongMediator : EventMediator
 
 	private void ShowPaperDoll()
 	{
+		if (radioSong.paperDollImageRaw == null || radioSong.paperDollImageRaw.Length == 0)
+		{
+			view.paperDollImage.enabled = false;
+			return;
+		}
 		Texture2D texture2D = new Texture2D(1, 1, TextureFormat.ARGB32, false);
-		texture2D.LoadImage(radioSong.paperDollImageRaw);
+		if (!texture2D.LoadImage(radioSong.paperDollImageRaw))
+		{
+			view.paperDollImage.enabled = false;
+			return;
+		}
 		Sprite paperDoll = Sprite.Create(texture2D, new Rect(0f, 0f, texture2D.width, texture2D.height), new Vector2(0f, 0f));
 		view.ShowPaperDoll(paperDoll);
 	}

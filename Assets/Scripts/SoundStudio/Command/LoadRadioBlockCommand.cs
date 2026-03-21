@@ -26,8 +26,12 @@ namespace SoundStudio.Command
 		public override void Execute()
 		{
 			payload = (base.evt.data as LoadRadioBlockCommandPayload);
-			if (Application.internetReachability == NetworkReachability.NotReachable)
+			if (!application.UseOnlineServices || Application.internetReachability == NetworkReachability.NotReachable)
 			{
+				if (TryDispatchOfflineBlock())
+				{
+					return;
+				}
 				OnConnectionFail();
 				return;
 			}
@@ -176,6 +180,14 @@ namespace SoundStudio.Command
 
 		private void OnConnectionFail()
 		{
+			if (pendingBlock != null)
+			{
+				RemoveAllListeners();
+			}
+			if (TryDispatchOfflineBlock())
+			{
+				return;
+			}
 			if (payload != null)
 			{
 				base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK_FAIL, payload.RadioCategory);
@@ -204,6 +216,169 @@ namespace SoundStudio.Command
 			base.dispatcher.RemoveListener(MWSEvent.GET_TRACK_COMPLETED, OnLoadSongDataComplete);
 			base.dispatcher.RemoveListener(MWSEvent.GET_TRACK_FAILED, OnConnectionFail);
 			Release();
+		}
+
+		private bool TryDispatchOfflineBlock()
+		{
+			List<RadioSongVO> offlineBlock = BuildOfflineBlock();
+			if (offlineBlock == null)
+			{
+				return false;
+			}
+			base.dispatcher.Dispatch(SoundStudioEvent.LOAD_RADIO_BLOCK_COMPLETE, new LoadRadioBlockCompletePayload(payload.RadioCategory, offlineBlock));
+			return true;
+		}
+
+		private List<RadioSongVO> BuildOfflineBlock()
+		{
+			if (application == null || application.songData == null || application.songData.Count == 0)
+			{
+				return null;
+			}
+			List<SongVO> list = new List<SongVO>(application.songData.SongList);
+			if (list.Count == 0)
+			{
+				return null;
+			}
+			SortOfflineSongs(list);
+			int offlineStartIndex = GetOfflineStartIndex(list);
+			if (offlineStartIndex >= list.Count)
+			{
+				return new List<RadioSongVO>();
+			}
+			int num = Mathf.Min(GetOfflineBlockSize(), list.Count - offlineStartIndex);
+			List<RadioSongVO> list2 = new List<RadioSongVO>(num);
+			for (int i = offlineStartIndex; i < offlineStartIndex + num; i++)
+			{
+				list2.Add(CreateOfflineRadioSong(list[i]));
+			}
+			return list2;
+		}
+
+		private int GetOfflineBlockSize()
+		{
+			if (payload.BlockSize > 0)
+			{
+				return payload.BlockSize;
+			}
+			if (payload.FriendSwids != null && payload.FriendSwids.Count > 0)
+			{
+				return payload.FriendSwids.Count;
+			}
+			return 5;
+		}
+
+		private int GetOfflineStartIndex(List<SongVO> songs)
+		{
+			if (payload.BeforeTrackID == 0)
+			{
+				return 0;
+			}
+			for (int i = 0; i < songs.Count; i++)
+			{
+				if (GetOfflineTrackId(songs[i]) == payload.BeforeTrackID)
+				{
+					return i + 1;
+				}
+			}
+			return songs.Count;
+		}
+
+		private void SortOfflineSongs(List<SongVO> songs)
+		{
+			songs.Sort(delegate(SongVO a, SongVO b)
+			{
+				int num = 0;
+				switch (payload.RadioCategory)
+				{
+				case RadioCategory.RANDOM:
+					num = GetOfflineSortSeed(a).CompareTo(GetOfflineSortSeed(b));
+					break;
+				case RadioCategory.FRIENDS:
+				case RadioCategory.NEW:
+					num = b.timeStamp.CompareTo(a.timeStamp);
+					break;
+				}
+				if (num == 0)
+				{
+					num = GetOfflineTrackId(a).CompareTo(GetOfflineTrackId(b));
+				}
+				return num;
+			});
+		}
+
+		private RadioSongVO CreateOfflineRadioSong(SongVO song)
+		{
+			string text = song.songName;
+			if (string.IsNullOrEmpty(text))
+			{
+				text = ((application.currentPlayer != null && !string.IsNullOrEmpty(application.currentPlayer.DisplayName)) ? application.currentPlayer.DisplayName : "Saved Track");
+			}
+			return new RadioSongVO
+			{
+				songVO = song,
+				paperDollImageRaw = null,
+				soundStudioRadioTrackData = new SoundStudioRadioTrackData
+				{
+					playerSwid = ((application.currentPlayer != null) ? application.currentPlayer.Swid : string.Empty),
+					playerDisplayName = text,
+					soundStudioTrackData = new SoundStudioTrackData
+					{
+						Data = song.rawData,
+						LastModified = ConvertToUnixMilliseconds(song.timeStamp),
+						Name = song.songName,
+						PlayerId = ((song.playerid != 0L) ? song.playerid : ((application.currentPlayer != null) ? application.currentPlayer.ID : 0L)),
+						TrackId = GetOfflineTrackId(song),
+						TrackShareState = TrackShareState.NOT_SHARED
+					}
+				}
+			};
+		}
+
+		private int GetOfflineTrackId(SongVO song)
+		{
+			if (song.HasServerID && song.serverID <= int.MaxValue && song.serverID >= int.MinValue)
+			{
+				return (int)song.serverID;
+			}
+			int offlineSongHash = GetOfflineSongHash(song);
+			if (offlineSongHash == 0)
+			{
+				return int.MinValue + 1;
+			}
+			return offlineSongHash;
+		}
+
+		private int GetOfflineSortSeed(SongVO song)
+		{
+			unchecked
+			{
+				int offlineSongHash = GetOfflineSongHash(song);
+				offlineSongHash = offlineSongHash * 397 ^ song.GenreID;
+				return offlineSongHash;
+			}
+		}
+
+		private int GetOfflineSongHash(SongVO song)
+		{
+			unchecked
+			{
+				int num = 17;
+				num = num * 23 + ((song.songName != null) ? song.songName.GetHashCode() : 0);
+				num = num * 23 + ((song.rawData != null) ? song.rawData.GetHashCode() : 0);
+				num = num * 23 + ((song.FileName != null) ? song.FileName.GetHashCode() : 0);
+				num = num * 23 + song.timeStamp.GetHashCode();
+				return num;
+			}
+		}
+
+		private long ConvertToUnixMilliseconds(System.DateTime timeStamp)
+		{
+			if (timeStamp == default(System.DateTime))
+			{
+				return 0L;
+			}
+			return (long)(timeStamp.ToUniversalTime() - new System.DateTime(1970, 1, 1)).TotalMilliseconds;
 		}
 	}
 }
