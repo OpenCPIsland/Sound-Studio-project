@@ -82,7 +82,7 @@ namespace SoundStudio.Command
 		{
 			if (getAssetBundlePayloadVO.ParentGameObject != null)
 			{
-				RaycastInputBlocker.BlockRayCasterInputsArray(Object.FindObjectsOfType(typeof(GraphicRaycaster)) as GraphicRaycaster[]);
+				RaycastInputBlocker.BlockRayCasterInputsArray(Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None));
 				theProgressWindow = (Object.Instantiate(LoadPrefab(), Vector3.zero, new Quaternion(0f, 0f, 0f, 0f)) as GameObject);
 				theProgressWindow.transform.SetParent(getAssetBundlePayloadVO.ParentGameObject.transform, worldPositionStays: false);
 			}

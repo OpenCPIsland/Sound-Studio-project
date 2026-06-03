@@ -16,9 +16,7 @@ namespace UnityTest
 		const string k_TempPath = "Temp";
 		private readonly bool m_Temp;
 
-		private ResolutionDialogSetting m_DisplayResolutionDialog;
 		private bool m_RunInBackground;
-		private bool m_FullScreen;
 		private bool m_ResizableWindow;
 		private readonly List<string> m_TempFileList = new List<string>();
 
@@ -29,14 +27,8 @@ namespace UnityTest
 
 		public void ChangeSettingsForIntegrationTests()
 		{
-			m_DisplayResolutionDialog = PlayerSettings.displayResolutionDialog;
-			PlayerSettings.displayResolutionDialog = ResolutionDialogSetting.Disabled;
-
 			m_RunInBackground = PlayerSettings.runInBackground;
 			PlayerSettings.runInBackground = true;
-
-			m_FullScreen = PlayerSettings.defaultIsFullScreen;
-			PlayerSettings.defaultIsFullScreen = false;
 
 			m_ResizableWindow = PlayerSettings.resizableWindow;
 			PlayerSettings.resizableWindow = true;
@@ -44,9 +36,7 @@ namespace UnityTest
 
 		public void RevertSettingsChanges()
 		{
-			PlayerSettings.defaultIsFullScreen = m_FullScreen;
 			PlayerSettings.runInBackground = m_RunInBackground;
-			PlayerSettings.displayResolutionDialog = m_DisplayResolutionDialog;
 			PlayerSettings.resizableWindow = m_ResizableWindow;
 		}
 

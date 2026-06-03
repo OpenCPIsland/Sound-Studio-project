@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class HockeyAppAndroid : MonoBehaviour
 {
@@ -50,18 +51,18 @@ public class HockeyAppAndroid : MonoBehaviour
 		if (exceptionLogging)
 		{
 			AppDomain.CurrentDomain.UnhandledException += OnHandleUnresolvedException;
-			Application.RegisterLogCallback(OnHandleLogCallback);
+			Application.logMessageReceived += OnHandleLogCallback;
 		}
 	}
 
 	public void OnDisable()
 	{
-		Application.RegisterLogCallback(null);
+		Application.logMessageReceived -= OnHandleLogCallback;
 	}
 
 	private void OnDestroy()
 	{
-		Application.RegisterLogCallback(null);
+		Application.logMessageReceived -= OnHandleLogCallback;
 	}
 
 	protected void StartCrashManager(string urlString, string appID, bool updateManagerEnabled, bool autoSendEnabled)
@@ -199,60 +200,58 @@ public class HockeyAppAndroid : MonoBehaviour
 			WWWForm postForm = CreateForm(log);
 			string lContent2 = postForm.headers["Content-Type"].ToString();
 			lContent2 = lContent2.Replace("\"", string.Empty);
-			WWW www = new WWW(headers: new Hashtable
-			{
+				using (UnityWebRequest www = UnityWebRequest.Post(url, postForm))
 				{
-					"Authorization",
-					" FD 5F20D8F8-9411-45D7-ADAC-F186C5B3574C:72C6967910F6B3FD03DF0AAF9C692860409908D8AD8CCC9E"
-				},
-				{
-					"Content-Type",
-					lContent2
-				}
-			}, url: url, postData: postForm.data);
-			yield return www;
-			if (string.IsNullOrEmpty(www.error))
-			{
-				try
-				{
-					File.Delete(log);
-				}
-				catch (Exception ex)
-				{
-					Exception e = ex;
-					if (Debug.isDebugBuild)
+					www.SetRequestHeader("Authorization", " FD 5F20D8F8-9411-45D7-ADAC-F186C5B3574C:72C6967910F6B3FD03DF0AAF9C692860409908D8AD8CCC9E");
+					www.SetRequestHeader("Content-Type", lContent2);
+					yield return www.SendWebRequest();
+					if (www.result == UnityWebRequest.Result.Success)
 					{
-						UnityEngine.Debug.Log("Failed to delete exception log: " + e);
+						try
+						{
+							File.Delete(log);
+						}
+						catch (Exception ex)
+						{
+							Exception e = ex;
+							if (Debug.isDebugBuild)
+							{
+								UnityEngine.Debug.Log("Failed to delete exception log: " + e);
+							}
+						}
 					}
 				}
 			}
 		}
-	}
 
-	protected virtual void WriteLogToDisk(string logString, string stackTrace)
-	{
-		string str = DateTime.Now.ToString("yyyy-MM-dd-HH_mm_ss_fff");
-		string str2 = logString.Replace("\n", " ");
-		string[] array = stackTrace.Split('\n');
-		str2 = "\n" + str2 + "\n";
-		string[] array2 = array;
-		foreach (string text in array2)
+		private void OnHandleLogCallback(string logString, string stackTrace, LogType type)
 		{
-			if (text.Length > 0)
+			if (!exceptionLogging)
 			{
-				str2 = str2 + "  at " + text + "\n";
+				return;
+			}
+			string str = DateTime.Now.ToString("yyyy-MM-dd HH_mm_ss");
+			string str2 = logString.Replace("\n", " ");
+			string[] array = stackTrace.Split('\n');
+			str2 = "\n" + str2 + "\n";
+			string[] array2 = array;
+			foreach (string text in array2)
+			{
+				if (text.Length > 0)
+				{
+					str2 = str2 + "  at " + text + "\n";
+				}
+			}
+			List<string> logHeaders = GetLogHeaders();
+			using (StreamWriter streamWriter = new StreamWriter(Application.persistentDataPath + "/logs/LogFile_" + str + ".log", append: true))
+			{
+				foreach (string item in logHeaders)
+				{
+					streamWriter.WriteLine(item);
+				}
+				streamWriter.WriteLine(str2);
 			}
 		}
-		List<string> logHeaders = GetLogHeaders();
-		using (StreamWriter streamWriter = new StreamWriter(Application.persistentDataPath + "/logs/LogFile_" + str + ".log", append: true))
-		{
-			foreach (string item in logHeaders)
-			{
-				streamWriter.WriteLine(item);
-			}
-			streamWriter.WriteLine(str2);
-		}
-	}
 
 	protected virtual string GetBaseURL()
 	{
@@ -288,11 +287,28 @@ public class HockeyAppAndroid : MonoBehaviour
 		WriteLogToDisk(logString, stackTrace);
 	}
 
-	public void OnHandleLogCallback(string logString, string stackTrace, LogType type)
+	private void WriteLogToDisk(string logString, string stackTrace)
 	{
-		if (type == LogType.Assert || type == LogType.Exception)
+		string str = DateTime.Now.ToString("yyyy-MM-dd HH_mm_ss");
+		string str2 = logString.Replace("\n", " ");
+		string[] array = stackTrace.Split('\n');
+		str2 = "\n" + str2 + "\n";
+		string[] array2 = array;
+		foreach (string text in array2)
 		{
-			HandleException(logString, stackTrace);
+			if (text.Length > 0)
+			{
+				str2 = str2 + "  at " + text + "\n";
+			}
+		}
+		List<string> logHeaders = GetLogHeaders();
+		using (StreamWriter streamWriter = new StreamWriter(Application.persistentDataPath + "/logs/LogFile_" + str + ".log", append: true))
+		{
+			foreach (string item in logHeaders)
+			{
+				streamWriter.WriteLine(item);
+			}
+			streamWriter.WriteLine(str2);
 		}
 	}
 

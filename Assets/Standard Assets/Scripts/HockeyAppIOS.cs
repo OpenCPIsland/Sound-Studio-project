@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class HockeyAppIOS : MonoBehaviour
 {
@@ -40,15 +41,15 @@ public class HockeyAppIOS : MonoBehaviour
 
 	private void OnDisable()
 	{
-		Application.RegisterLogCallback(null);
+		Application.logMessageReceived -= OnHandleLogCallback;
 	}
 
 	private void OnDestroy()
 	{
-		Application.RegisterLogCallback(null);
+		Application.logMessageReceived -= OnHandleLogCallback;
 	}
 
-	private void GameViewLoaded(string message)
+	private void OnHandleLogCallback(string logString, string stackTrace, LogType type)
 	{
 	}
 
@@ -78,59 +79,64 @@ public class HockeyAppIOS : MonoBehaviour
 			WWWForm postForm = CreateForm(log);
 			string lContent2 = postForm.headers["Content-Type"].ToString();
 			lContent2 = lContent2.Replace("\"", string.Empty);
-			WWW www = new WWW(headers: new Hashtable
-			{
+				using (UnityWebRequest www = UnityWebRequest.Post(url, postForm))
 				{
-					"Authorization",
-					" FD 5F20D8F8-9411-45D7-ADAC-F186C5B3574C:72C6967910F6B3FD03DF0AAF9C692860409908D8AD8CCC9E"
-				},
-				{
-					"Content-Type",
-					lContent2
-				}
-			}, url: url, postData: postForm.data);
-			yield return www;
-			if (string.IsNullOrEmpty(www.error))
-			{
-				try
-				{
-					File.Delete(log);
-				}
-				catch (Exception ex)
-				{
-					Exception e = ex;
-					if (Debug.isDebugBuild)
+					www.SetRequestHeader("Authorization", " FD 5F20D8F8-9411-45D7-ADAC-F186C5B3574C:72C6967910F6B3FD03DF0AAF9C692860409908D8AD8CCC9E");
+					www.SetRequestHeader("Content-Type", lContent2);
+					yield return www.SendWebRequest();
+					if (www.result == UnityWebRequest.Result.Success)
 					{
-						UnityEngine.Debug.Log("Failed to delete exception log: " + e);
+						try
+						{
+							File.Delete(log);
+						}
+						catch (Exception ex)
+						{
+							Exception e = ex;
+							if (Debug.isDebugBuild)
+							{
+								UnityEngine.Debug.Log("Failed to delete exception log: " + e);
+							}
+						}
 					}
 				}
 			}
 		}
-	}
-
-	protected virtual void WriteLogToDisk(string logString, string stackTrace)
-	{
-	}
-
-	protected virtual string GetBaseURL()
-	{
-		return string.Empty;
-	}
-
-	protected virtual bool IsConnected()
-	{
-		return false;
-	}
 
 	protected virtual void HandleException(string logString, string stackTrace)
 	{
 	}
 
-	public void OnHandleLogCallback(string logString, string stackTrace, LogType type)
+	public void OnHandleUnresolvedException(object sender, UnhandledExceptionEventArgs args)
 	{
 	}
 
-	public void OnHandleUnresolvedException(object sender, UnhandledExceptionEventArgs args)
+	protected virtual string GetBaseURL()
 	{
+		string empty = string.Empty;
+		string text = serverURL.Trim();
+		if (text.Length > 0)
+		{
+			empty = text;
+			if (!empty[empty.Length - 1].Equals("/"))
+			{
+				empty += "/";
+			}
+		}
+		else
+		{
+			empty = "https://api.disney.com/dmn/crash/v2";
+		}
+		return empty;
+	}
+
+	protected virtual bool IsConnected()
+	{
+		bool result = false;
+		if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork || Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork)
+		{
+			result = true;
+		}
+		return result;
 	}
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Disney.DMOAnalytics.Framework
 {
@@ -148,27 +149,36 @@ namespace Disney.DMOAnalytics.Framework
 			string dataStr = getDataBodyStr(postData);
 			string hostURL = getHostURL();
 			DMOAnalyticsHelper.Log("Connecting to Server: " + hostURL);
-			WWW www = new WWW(hostURL, Encoding.UTF8.GetBytes(dataStr), headers);
-			yield return www;
-			bool isPosted = www.isDone && www.error == null && www.text != null;
-			if (!isPosted)
+			using (UnityWebRequest www = new UnityWebRequest(hostURL, "POST"))
 			{
-				DMOAnalyticsHelper.Log("Errr in WWW request:" + www.error);
-			}
-			if (isPosted)
-			{
-				try
+				www.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(dataStr));
+				www.downloadHandler = new DownloadHandlerBuffer();
+				foreach (var header in headers)
 				{
-					string contentLen = www.responseHeaders["CONTENT-LENGTH"];
-					int textLen = Convert.ToInt32(contentLen);
-					if (textLen >= 1)
-					{
-					}
+					www.SetRequestHeader(header.Key, header.Value);
 				}
-				catch (Exception ex2)
+				yield return www.SendWebRequest();
+				bool isPosted = www.isDone && www.result == UnityWebRequest.Result.Success && www.downloadHandler.text != null;
+				if (!isPosted)
 				{
-					Exception ex = ex2;
-					DMOAnalyticsHelper.Log("Errr in WWW response: " + ex.ToString());
+					DMOAnalyticsHelper.Log("Errr in WWW request:" + www.error);
+				}
+				if (isPosted)
+				{
+					try
+					{
+						string contentLen = www.GetResponseHeader("CONTENT-LENGTH");
+						int textLen = Convert.ToInt32(contentLen);
+						if (textLen >= 1)
+						{
+							DMOAnalyticsHelper.Log("Analytics request posted successfully");
+						}
+					}
+					catch (Exception ex2)
+					{
+						Exception ex = ex2;
+						DMOAnalyticsHelper.Log("Errr in WWW response: " + ex.ToString());
+					}
 				}
 			}
 			DMOAnalyticsHelper.Log("WWW request is posted");

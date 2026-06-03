@@ -167,7 +167,7 @@ public static class AudioClipPlayer
 	{
 		if (audioListener == null)
 		{
-			audioListener = (UnityEngine.Object.FindObjectOfType(typeof(AudioListener)) as AudioListener);
+			audioListener = UnityEngine.Object.FindFirstObjectByType<AudioListener>();
 			if (audioListener == null)
 			{
 				GameObject gameObject = GameObject.Find("ContextView");

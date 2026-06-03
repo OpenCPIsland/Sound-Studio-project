@@ -33,7 +33,7 @@ public class RecordOopsView : View
 	public void OnStoreClick()
 	{
 		dispatcher.Dispatch(SFXEvent.SFX_CLICK_SELECT);
-		Canvas canvas = Object.FindObjectOfType(typeof(Canvas)) as Canvas;
+		Canvas canvas = Object.FindFirstObjectByType<Canvas>();
 		dispatcher.Dispatch(ShowStoreEvent.SHOW_STORE, canvas.GetComponent<RectTransform>());
 		UnityEngine.Object.Destroy(base.gameObject);
 	}
@@ -41,7 +41,7 @@ public class RecordOopsView : View
 	public void OnMoreClick()
 	{
 		dispatcher.Dispatch(SFXEvent.SFX_CLICK_SELECT);
-		Canvas canvas = Object.FindObjectOfType(typeof(Canvas)) as Canvas;
+		Canvas canvas = Object.FindFirstObjectByType<Canvas>();
 		dispatcher.Dispatch(ShowAboutMembershipEvent.SHOW_ABOUT_MEMBERSHIP, canvas.GetComponent<RectTransform>());
 		UnityEngine.Object.Destroy(base.gameObject);
 	}

@@ -15,7 +15,7 @@ namespace UnityTest
 	
 		public static void DoAnnotationGUI(int id, Rect rect)
 		{
-			var obj = EditorUtility.InstanceIDToObject(id) as GameObject;
+			var obj = EditorUtility.EntityIdToObject(id) as GameObject;
 			if(!obj) return;
 			
 			var tc = obj.GetComponent<TestComponent>();

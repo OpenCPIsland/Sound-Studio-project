@@ -41,7 +41,7 @@ namespace SoundStudio.Command
 			RectTransform rectTransform = list[1] as RectTransform;
 			RaycastInputBlocker.Clear();
 			RaycastInputBlocker.AllowGraphicRayCaster(RaycastInputBlocker.GetFirstRayCasterInHierarchy(rectTransform));
-			RaycastInputBlocker.BlockRayCasterInputsArray(UnityEngine.Object.FindObjectsOfType(typeof(GraphicRaycaster)) as GraphicRaycaster[]);
+			RaycastInputBlocker.BlockRayCasterInputsArray(UnityEngine.Object.FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None));
 			if (rectTransform != null)
 			{
 				loginContext = (UnityEngine.Object.Instantiate(strikeModules.loginContextPrefab) as LoginContext);

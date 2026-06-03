@@ -82,7 +82,7 @@ namespace SoundStudio.Service
 				yield return null;
 			}
 
-			if (Caching.IsVersionCached(bundleURL, version))
+			if (Caching.IsVersionCached(bundleURL, new Hash128(0, (uint)version)))
 			{
 				dispatcher.Dispatch(SoundStudioEvent.ASSET_BUNDLE_CACHED);
 			}

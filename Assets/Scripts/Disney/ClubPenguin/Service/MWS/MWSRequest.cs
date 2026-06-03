@@ -187,7 +187,7 @@ namespace Disney.ClubPenguin.Service.MWS
 				string[] values = nvc.GetValues(text);
 				foreach (string s in values)
 				{
-					list.Add(string.Format("{0}={1}", WWW.EscapeURL(text), WWW.EscapeURL(s)));
+					list.Add(string.Format("{0}={1}", System.Uri.EscapeDataString(text), System.Uri.EscapeDataString(s)));
 				}
 			}
 			return "?" + string.Join("&", list.ToArray());

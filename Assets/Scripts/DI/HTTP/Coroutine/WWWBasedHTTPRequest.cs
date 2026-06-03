@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace DI.HTTP.Coroutine
 {
@@ -17,7 +18,8 @@ namespace DI.HTTP.Coroutine
 		public override IHTTPResponse performSync()
 		{
 			OnStart();
-			WWW wWW = new WWW(getUrl());
+			UnityWebRequest wWW = UnityWebRequest.Get(getUrl());
+			wWW.SendWebRequest();
 			ServicePoint servicePoint = ServicePointManager.FindServicePoint(getUrl(), null);
 			if (servicePoint != null)
 			{
@@ -33,7 +35,7 @@ namespace DI.HTTP.Coroutine
 				Debug.Log("None found");
 			}
 			HTTPBaseResponseImpl hTTPBaseResponseImpl = new HTTPBaseResponseImpl(this);
-			if (!string.IsNullOrEmpty(wWW.error))
+			if (wWW.result == UnityWebRequest.Result.ConnectionError || wWW.result == UnityWebRequest.Result.ProtocolError)
 			{
 				hTTPBaseResponseImpl.setStatusCode(parseStatusFromMessage(wWW.error));
 				OnError(hTTPBaseResponseImpl, new HTTPException(wWW.error));
@@ -41,9 +43,10 @@ namespace DI.HTTP.Coroutine
 			else
 			{
 				hTTPBaseResponseImpl.setStatusCode(200);
-				hTTPBaseResponseImpl.setDocument(new HTTPBaseDocumentImpl(wWW.bytes));
+				hTTPBaseResponseImpl.setDocument(new HTTPBaseDocumentImpl(wWW.downloadHandler.data));
 				OnSuccess(hTTPBaseResponseImpl);
 			}
+			wWW.Dispose();
 			OnComplete();
 			return hTTPBaseResponseImpl;
 		}
@@ -63,7 +66,7 @@ namespace DI.HTTP.Coroutine
 		private IEnumerator request()
 		{
 			OnStart();
-			WWW www = new WWW(getUrl());
+			UnityWebRequest www = UnityWebRequest.Get(getUrl());
 			ServicePoint sp = ServicePointManager.FindServicePoint(getUrl(), null);
 			if (sp != null)
 			{
@@ -78,13 +81,13 @@ namespace DI.HTTP.Coroutine
 			{
 				Debug.Log("None found");
 			}
-			yield return www;
+			yield return www.SendWebRequest();
 			if (!www.isDone)
 			{
 				yield return www;
 			}
 			HTTPBaseResponseImpl response = new HTTPBaseResponseImpl(this);
-			if (!string.IsNullOrEmpty(www.error))
+			if (www.result == UnityWebRequest.Result.ConnectionError || www.result == UnityWebRequest.Result.ProtocolError)
 			{
 				response.setStatusCode(parseStatusFromMessage(www.error));
 				OnError(response, new HTTPException(www.error));
@@ -92,9 +95,10 @@ namespace DI.HTTP.Coroutine
 			else
 			{
 				response.setStatusCode(200);
-				response.setDocument(new HTTPBaseDocumentImpl(www.bytes));
+				response.setDocument(new HTTPBaseDocumentImpl(www.downloadHandler.data));
 				OnSuccess(response);
 			}
+			www.Dispose();
 			OnComplete();
 		}
 

@@ -28,7 +28,7 @@ public class SoundStudioContext : MVCSContext
 	public SoundStudioContext(MonoBehaviour view)
 		: base(view)
 	{
-		Application.RegisterLogCallback(HandleException);
+		Application.logMessageReceived += HandleException;
 	}
 
 	public SoundStudioContext(MonoBehaviour view, ContextStartupFlags flags)
