@@ -276,8 +276,8 @@ PlayerSettings:
   AndroidAllowedArchitectures: -1
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
-  AndroidKeystoreName: '{dedicated}: Documents/Disney.keystore'
-  AndroidKeyaliasName: disney
+  AndroidKeystoreName: G:/Unity Projects/Disney/Kelowna/SharedAssets/OpenCPI.keystore
+  AndroidKeyaliasName: opencpi
   AndroidEnableArmv9SecurityFeatures: 1
   AndroidEnableArm64MTE: 0
   AndroidBuildApkPerCpuArchitecture: 0
